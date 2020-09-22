@@ -20,3 +20,11 @@ class ProductPage(BasePage):
         assert basket_total.text == book_price.text, \
             "Wrong book added, wrong price." \
             f"\nExpected {book_price.text}, result {basket_total.text}"
+
+    def should_not_be_success_message(self):
+        assert self.is_not_element_present(*ProductPageLocators.CONFIRM_ADDING), \
+            "Success message is presented, but should not be"
+
+    def should_dissapear_of_success_message(self):
+        assert self.is_disappeared(*ProductPageLocators.CONFIRM_ADDING), \
+            "Success message should to disappear, but it is present"

@@ -1,8 +1,43 @@
+import time
 import pytest
+import faker
 
 from .pages.product_page import ProductPage
-from .pages.base_page import BasePage
+from .pages.login_page import LoginPage
 from .pages.basket_page import BasketPage
+
+
+product_link = "http://selenium1py.pythonanywhere.com/en-gb/catalogue/the-shellcoders-handbook_209/?promo=newYear"
+link_to_login = "http://selenium1py.pythonanywhere.com/en-gb/accounts/login/"
+
+
+@pytest.mark.authorized_user
+class TestUserAddToBasketFromProductPage:
+    @pytest.fixture(scope="function", autouse=True)
+    def setup(self, browser):
+        print("\nOpen login page")
+        login_page = LoginPage(browser, link_to_login)
+        login_page.open()
+        print("\nStart new_user registration")
+        f = faker.Faker()
+        email = f.email()
+        password = str(time.time())
+        login_page.register_new_user(email, password)
+        print("\nShould be authorized user")
+        login_page.should_be_authorized_user()
+
+    def test_user_cant_see_success_message(self, browser):
+        page = ProductPage(browser, product_link)
+        page.open()
+        page.should_not_be_success_message()
+
+    def test_user_can_add_product_to_basket(self, browser):
+        page = ProductPage(browser, product_link)
+        page.open()
+        page.add_to_basket()
+        page.solve_quiz_and_get_code()
+        page.should_be_right_book_added()
+        page.should_be_right_book_price()
 
 
 @pytest.mark.parametrize('url', ["?promo=offer0",
@@ -73,7 +108,7 @@ def test_quest_can_go_to_login_page_from_product_page(browser):
 @pytest.mark.basket
 def test_quest_cant_see_product_in_basket_opened_from_product_page(browser):
     link = "http://selenium1py.pythonanywhere.com/en-gb/catalogue/the-city-and-the-stars_95/"
-    page = BasePage(browser, link)
+    page = ProductPage(browser, link)
     page.open()
     page.go_to_basket_page()
     basket_page = BasketPage(browser, browser.current_url)
